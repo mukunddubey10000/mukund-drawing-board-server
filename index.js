@@ -4,6 +4,7 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 
 const app = express();
+const isDev = app.settings.env === "developement";
 const URL = isDev ? 'http://localhost:3000' : 'https://mukund-drawing-board.vercel.app/'
 app.use(cors({ origin: URL }));
 const httpServer = createServer(app);
