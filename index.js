@@ -4,33 +4,51 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 
 const app = express();
-const isDev = app.settings.env === "developement";
-const URL = isDev ? 'http://localhost:3000' : 'https://mukund-drawing-board.vercel.app/'
-app.use(cors({ origin: URL }));
+const isDev = app.settings.env === "development";
+const URL = isDev
+    ? "http://localhost:3000"
+    : "https://mukund-drawing-board.vercel.app";
+
+// Configure CORS for HTTP requests
+app.use(cors({
+    origin: URL, // Allow the correct origin
+    methods: ["GET", "POST"], // Allow GET and POST methods
+    credentials: true, // Allow cookies and credentials
+}));
+
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: URL });
 
+// Configure CORS for Socket.IO
+const io = new Server(httpServer, {
+    cors: {
+        origin: URL, // Allow the correct origin
+        methods: ["GET", "POST"], // Allow GET and POST methods
+        credentials: true, // Allow credentials
+    },
+});
+
+// Handle Socket.IO events
 io.on("connection", (socket) => {
-    console.log('server is connected now ');
+    console.log("A user connected");
 
-    //when user has mouse down then send that to server => socket.on
-    //& emit it to others => broadcast.emit
     socket.on("beginPath", (arg) => {
-        // console.log('Mukund logger 1 = ', arg);
-        socket.broadcast.emit("beginPath", arg);
+        socket.broadcast.emit("beginPath", arg); // Broadcast to all other clients
     });
 
     socket.on("drawLine", (arg) => {
-        // console.log('Mukund logger 2 = ', arg);
-        socket.broadcast.emit("drawLine", arg);
+        socket.broadcast.emit("drawLine", arg); // Broadcast to all other clients
     });
 
     socket.on("changeConfig", (args) => {
-        // console.log('Mukund logger 3 = ', args);
-        socket.broadcast.emit("changeConfig", args);
+        socket.broadcast.emit("changeConfig", args); // Broadcast to all other clients
+    });
+
+    socket.on("disconnect", () => {
+        console.log("A user disconnected");
     });
 });
 
-httpServer.listen(5000);
-
-// idhar se liya https://socket.io/docs/v4/server-initialization/
+// Start the server
+httpServer.listen(5000, () => {
+    console.log(`Server is running on port 5000`);
+});
